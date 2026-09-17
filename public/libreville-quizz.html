@@ -48,6 +48,9 @@ h1,h2,h3{text-align:center;color:var(--gabon-yellow);text-shadow:0 2px 4px rgba(
 .profile-media{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.upload-btn{display:inline-flex!important;width:auto!important;background:rgba(255,255,255,.1);padding:9px 12px;border-radius:8px;cursor:pointer}.profile-preview{margin-top:10px;min-height:70px;border-radius:12px;background-size:cover;background-position:center;display:flex;align-items:center;gap:10px}.profile-preview img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid var(--gabon-yellow)}.settings-actions{display:flex;gap:8px;flex-wrap:wrap}.settings-actions .btn{margin:0}.colorblind .choice-btn.correct{background:#2563eb!important;border-color:#1d4ed8!important}.colorblind .choice-btn.correct:before{content:"✓ ";font-weight:900}.colorblind .choice-btn.incorrect{background:#f59e0b!important;border-color:#b45309!important;color:#111}.colorblind .choice-btn.incorrect:before{content:"✕ ";font-weight:900}.choice-btn.correct{animation:correctPulse .55s ease-in-out 2}.choice-btn.incorrect{animation:shake .4s,incorrectFlash .5s 2}@keyframes correctPulse{50%{transform:scale(1.02);box-shadow:0 0 18px var(--gabon-yellow)}}@keyframes incorrectFlash{50%{filter:brightness(1.35)}}.buzzer-locked{animation:pulse .8s infinite alternate}.ftue-card{max-width:520px;margin:auto;text-align:center}.reward-map{font-size:4rem;margin:10px}.territory-badge{display:inline-block;padding:10px 14px;border:2px solid var(--gabon-yellow);border-radius:999px;background:rgba(252,209,22,.12);font-weight:800}.online-status{font-size:.82rem;opacity:.8;margin-top:6px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 .timer-wrap{display:flex;align-items:center;gap:10px;margin-bottom:20px}.timer-wrap .timer-bar-container{flex:1;margin-bottom:0}.timer-count{min-width:42px;text-align:center;font-weight:900;font-variant-numeric:tabular-nums;font-size:1.05rem}.timer-count.urgent{animation:timerPulse .65s ease-in-out infinite;transform-origin:center}@keyframes timerPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.16);opacity:.72}}.timer-bar.urgent{animation:timerBarPulse .65s ease-in-out infinite}@keyframes timerBarPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
+
+.online-social-panel{margin-top:14px;padding:12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+.online-social-title{font-weight:900;margin-bottom:8px}.online-presence-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;margin:6px 0;border-radius:11px;background:rgba(255,255,255,.055);cursor:pointer}.online-presence-row:hover{background:rgba(255,255,255,.1)}.online-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:7px}.online-presence-meta{font-size:.75rem;opacity:.7}.online-mini-btn{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:inherit;border-radius:9px;padding:7px 9px;cursor:pointer;font-weight:800}.online-mini-btn:disabled{opacity:.45;cursor:not-allowed}.online-message{padding:9px;border-radius:10px;margin:6px 0;background:rgba(252,209,22,.09);border-left:3px solid var(--gabon-yellow)}.online-message.success{border-left-color:#22c55e}.online-message.error{border-left-color:#ef4444}.online-invite-actions{display:flex;gap:7px;margin-top:8px}.online-invite-actions button{flex:1}
 </style>
 </head>
 <body data-theme="gabon">
@@ -66,6 +69,14 @@ h1,h2,h3{text-align:center;color:var(--gabon-yellow);text-shadow:0 2px 4px rgba(
 <button class="back-btn" onclick="app.leaveOnlineLobby()">← Retour</button>
 <h2>🌐 Salon en ligne</h2>
 <p class="online-status" style="text-align:center">Affrontez des joueurs connectés à Internet dans une même salle.</p>
+<div id="online-social-panel" class="online-social-panel">
+  <div class="online-social-title">🟢 Joueurs en ligne <span id="online-presence-count">0</span></div>
+  <div id="online-presence-list"><div class="online-status">Connexion pour afficher les joueurs...</div></div>
+</div>
+<div id="online-messages" class="online-social-panel" style="display:none">
+  <div class="online-social-title">💬 Messages & invitations</div>
+  <div id="online-message-list"></div>
+</div>
 
 <div id="online-connect-box" class="settings-group">
   <label for="online-server-url">Serveur</label>
@@ -282,7 +293,7 @@ const LIBREVILLE_AMBIENT_DATA="data:audio/wav;base64,UklGRiS4CwBXQVZFZm10IBAAAAA
 const TERRITORIES={cities:["Port-Gentil","Franceville","Oyem","Moanda","Lambaréné","Tchibanga"],districts:["Louis","Glass","Nombakélé","Akébé","Nzeng-Ayong","Mindoubé","Oloumi"]};
 
 class LibrevilleQuizzApp{
-constructor(){this.settings={theme:"gabon",timer:20,playerName:"Citoyen Gabonais",language:"fr",sound:true,music:true,musicVolume:.20,sfxVolume:.8,colorblind:false,avatar:"",cover:""};this.activeRubric=null;this.questionsQueue=[];this.currentQuestionIndex=0;this.palierStartIndex=0;this.palierCorrect=0;this.score=0;this.timerInterval=null;this.nextAutoTimer=null;this.nextAutoCountdown=null;this.timeLeft=20;this.isMulti=false;this.players=[];this.currentPlayerTurn=0;this.questionLocked=false;this.answerPhase=false;this.audioCtx=null;this.musicAudio=null;this.challengePlayers=[{name:"Joueur 1",score:0},{name:"Joueur 2",score:0}];this.challengeRound=0;this.challengeTotalRounds=10;this.challengeTimer=null;this.challengeElapsed=0;this.challengeBuzzed=null;this.challengeLocked=false;this.challengeRiddle=null;this.challengeClueIndex=0;this.onlineMode=false;this.onlineSocket=null;this.onlineRoom=null;this.onlinePlayerId=null;this.onlineIsHost=false;this.onlineRoundTimer=null;this.onlineRoundEndsAt=0;this.onlineAnswered=false;this.onlineQuestions=[];this.init()}
+constructor(){this.settings={theme:"gabon",timer:20,playerName:"Citoyen Gabonais",language:"fr",sound:true,music:true,musicVolume:.20,sfxVolume:.8,colorblind:false,avatar:"",cover:""};this.activeRubric=null;this.questionsQueue=[];this.currentQuestionIndex=0;this.palierStartIndex=0;this.palierCorrect=0;this.score=0;this.timerInterval=null;this.nextAutoTimer=null;this.nextAutoCountdown=null;this.timeLeft=20;this.isMulti=false;this.players=[];this.currentPlayerTurn=0;this.questionLocked=false;this.answerPhase=false;this.audioCtx=null;this.musicAudio=null;this.challengePlayers=[{name:"Joueur 1",score:0},{name:"Joueur 2",score:0}];this.challengeRound=0;this.challengeTotalRounds=10;this.challengeTimer=null;this.challengeElapsed=0;this.challengeBuzzed=null;this.challengeLocked=false;this.challengeRiddle=null;this.challengeClueIndex=0;this.onlineMode=false;this.onlineSocket=null;this.onlineRoom=null;this.onlinePlayerId=null;this.onlineIsHost=false;this.onlineRoundTimer=null;this.onlineRoundEndsAt=0;this.onlineAnswered=false;this.onlineQuestions=[];this.onlinePresence=[];this.onlinePresenceId=null;this.init()}
 init(){this.loadLocalStorage();this.renderPlayerInputs();if(!localStorage.getItem("libreville_quizz_ftue_done"))setTimeout(()=>this.startFTUE(),350)}
 loadLocalStorage(){try{const raw=localStorage.getItem("libreville_quizz_data");if(raw)this.progress={...this.defaultProgress(),...JSON.parse(raw)};else this.progress=this.defaultProgress();this.progress.questionIndexByRubric=this.progress.questionIndexByRubric||{};this.progress.palierStartByRubric=this.progress.palierStartByRubric||{}}catch(e){this.progress=this.defaultProgress()}try{const saved=localStorage.getItem("libreville_quizz_settings");if(saved)this.settings={...this.settings,...JSON.parse(saved)}}catch(e){}const ids={"setting-theme":this.settings.theme,"setting-timer":this.settings.timer,"profile-name":this.settings.playerName,"setting-language":this.settings.language,"music-volume":Math.round(this.settings.musicVolume*100),"sfx-volume":Math.round(this.settings.sfxVolume*100)};Object.entries(ids).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v});const se=document.getElementById("sound-enabled"),me=document.getElementById("music-enabled"),cb=document.getElementById("colorblind-mode");if(se)se.checked=this.settings.sound;if(me)me.checked=this.settings.music;if(cb)cb.checked=this.settings.colorblind;this.changeTheme(this.settings.theme);this.toggleColorblind(this.settings.colorblind);this.updateVolumeLabels();this.renderProfilePreview()}
 defaultProgress(){return{totalPoints:0,coins:100,gems:0,unlockedCities:[],unlockedDistricts:[],completedPaliers:[],palierBest:{},achievements:[],daily:{date:"",streak:0,lastClaim:""},questionIndexByRubric:{},palierStartByRubric:{}}}
@@ -389,7 +400,11 @@ startOnline(){
   if(nick)nick.value=this.settings.playerName||"Citoyen Gabonais";
   const url=document.getElementById("online-server-url");
   if(url&&!url.value)url.value=this.onlineDefaultServerUrl();
-  this.onlineSetStatus("Choisissez « Créer un salon » ou saisissez un code pour rejoindre.");
+  this.onlineSetStatus("Connexion à la liste des joueurs…");
+  this.onlineConnect(()=>{
+    this.onlineSend("online_register",{name:this.onlineNickname()});
+    this.onlineSetStatus("Choisissez « Créer un salon » ou saisissez un code pour rejoindre.");
+  });
 }
 
 onlineDefaultServerUrl(){
@@ -436,6 +451,51 @@ onlineSend(type,payload={}){
   if(!this.onlineSocket||this.onlineSocket.readyState!==WebSocket.OPEN){this.onlineSetStatus("❌ Pas de connexion au serveur.");return false}
   this.onlineSocket.send(JSON.stringify({type,...payload}));return true
 }
+onlineRenderPresence(players){
+  const c=document.getElementById("online-presence-list");
+  const count=document.getElementById("online-presence-count");
+  if(count)count.textContent=String((players||[]).length);
+  if(!c)return;
+  if(!players||!players.length){c.innerHTML='<div class="online-status">Aucun autre joueur connecté pour le moment.</div>';return}
+  c.innerHTML=players.map(p=>{
+    const me=p.id===this.onlinePresenceId;
+    const busy=!!p.inRoom;
+    return `<div class="online-presence-row" onclick="app.onlineOpenProfile('${this.escape(p.id)}')">
+      <div><span class="online-dot"></span><strong>${this.escape(p.name)}</strong><div class="online-presence-meta">${me?'Vous':busy?'Dans un salon':'Disponible'}</div></div>
+      <button class="online-mini-btn" onclick="event.stopPropagation();app.onlineOpenProfile('${this.escape(p.id)}')">Profil</button>
+    </div>`;
+  }).join("");
+}
+onlineOpenProfile(id){
+  const p=(this.onlinePresence||[]).find(x=>x.id===id);
+  if(!p)return;
+  if(p.id===this.onlinePresenceId){this.onlineAddMessage('info','👤 C’est votre profil.');return}
+  if(p.inRoom){this.onlineAddMessage('info',`👤 ${p.name} est déjà dans un salon.`);return}
+  if(!this.onlineRoom){this.onlineAddMessage('info','Créez ou rejoignez un salon avant d’inviter un joueur.');return}
+  if(this.onlineRoom.status!=="waiting"){this.onlineAddMessage('error','La partie a déjà commencé : impossible d’inviter ce joueur.');return}
+  if((this.onlineRoom.players||[]).length>=4){this.onlineAddMessage('error','Votre salon est complet.');return}
+  if(confirm(`👤 ${p.name}\n\nEnvoyer une demande pour rejoindre votre salon ${this.onlineRoom.code} ?`))this.onlineInvite(p.id);
+}
+onlineInvite(id){
+  const p=(this.onlinePresence||[]).find(x=>x.id===id);
+  if(!p)return;
+  if(this.onlineSend("invite_player",{targetId:id})){this.onlineAddMessage('success',`📨 Demande envoyée à ${p.name}.`)}
+}
+onlineAddMessage(kind,text,invite){
+  const box=document.getElementById('online-messages'),list=document.getElementById('online-message-list');
+  if(!box||!list)return;
+  box.style.display='block';
+  const div=document.createElement('div');div.className='online-message '+(kind||'info');
+  div.innerHTML=`<div>${this.escape(text)}</div>`;
+  if(invite){
+    const actions=document.createElement('div');actions.className='online-invite-actions';
+    const yes=document.createElement('button');yes.className='online-mini-btn';yes.textContent='✅ Rejoindre';yes.onclick=()=>{this.onlineSend('invite_response',{accept:true,fromId:invite.fromId,roomCode:invite.roomCode});div.remove()};
+    const no=document.createElement('button');no.className='online-mini-btn';no.textContent='❌ Refuser';no.onclick=()=>{this.onlineSend('invite_response',{accept:false,fromId:invite.fromId,roomCode:invite.roomCode});div.remove()};
+    actions.append(yes,no);div.appendChild(actions);
+  }
+  list.prepend(div);
+  while(list.children.length>8)list.lastElementChild.remove();
+}
 onlineCreateRoom(){
   const nick=this.onlineNickname();
   this.settings.playerName=nick;this.safeSave();
@@ -450,7 +510,16 @@ onlineJoinRoom(){
 }
 onlineHandleMessage(raw){
   let m;try{m=JSON.parse(raw)}catch(e){return}
-  if(m.type==="error"){this.onlineSetStatus("⚠️ "+m.message);alert(m.message);return}
+  if(m.type==="error"){this.onlineSetStatus("⚠️ "+m.message);this.onlineAddMessage("error","⚠️ "+m.message);return}
+  if(m.type==="registered"){this.onlinePresenceId=m.player.id;return}
+  if(m.type==="presence_list"){this.onlinePresence=m.players||[];this.onlineRenderPresence(this.onlinePresence);return}
+  if(m.type==="message"){this.onlineAddMessage(m.kind||"info",m.text||"");return}
+  if(m.type==="invite_received"){
+    const i=m.invite||{};
+    this.onlineAddMessage("success",`📨 ${i.fromName||"Un joueur"} vous invite à rejoindre le salon ${i.roomCode||"------"}.`,i);
+    this.onlineSetStatus(`📨 Invitation reçue de ${i.fromName||"un joueur"}.`);
+    return;
+  }
   if(m.type==="room_created"||m.type==="room_joined"){
     this.onlineRoom=m.room;this.onlinePlayerId=m.playerId;this.onlineIsHost=!!m.isHost;
     const code=document.getElementById("online-room-code-display");if(code)code.textContent=m.room.code;
